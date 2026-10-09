@@ -1,0 +1,1077 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_LoanOrigination" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.20.0">
+  <bpmn:message id="Message_Withdraw" name="Withdraw at any stage" />
+  <bpmn:message id="Message_CreditReport" name="Credit report received" />
+  <bpmn:message id="Message_DisbursementConfirmed" name="Disbursement confirmed" />
+  <bpmn:error id="Error_System" name="System error" errorCode="SYSTEM_ERROR" />
+  <bpmn:error id="Error_ApiTimeout" name="System error / API timeout" errorCode="API_TIMEOUT" />
+  <bpmn:error id="Error_Disbursement" name="Disbursement error" errorCode="DISBURSEMENT_ERROR" />
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Main" name="Assignment 3: Loan Origination &amp; Approval System" processRef="Process_LoanOrigination" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_LoanOrigination" name="Assignment 3: Loan Origination &amp; Approval System" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Applicant" name="Applicant">
+        <bpmn:flowNodeRef>Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Submit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_MissingDocs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Provide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_Provide7d</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Resubmitted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Lapsed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ReceiveOffer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AcceptOffer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_OfferExpired</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ESign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_ESign7d</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_ESignMsg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_Withdraw</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Withdrawn</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_LoanOfficer" name="Loan Officer">
+        <bpmn:flowNodeRef>T_Initial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DocsValid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_CheckIncome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Prepare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_GenOffer</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Underwriter" name="Underwriter / Credit Committee">
+        <bpmn:flowNodeRef>F_Fork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AutoApprove</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ManualReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Counter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_SendRejection</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AppRejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_InitA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_DisbError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DisbSuccess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_CreateLoanAccount</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_LoanDisbursed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Fraud" name="Fraud &amp; Compliance Team">
+        <bpmn:flowNodeRef>T_RunFraud</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_FraudFlag</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Investigate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_FraudConfirmed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_RejectFile</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Terminate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Merge_Fraud</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Handle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_Retry</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_CreditBureau" name="Credit Bureau (External)">
+        <bpmn:flowNodeRef>T_RequestCredit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_Api</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_RetryC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_StillC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ManualCredit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ReceiveCredit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Outcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Hold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AppFailed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Operations" name="Operations / Disbursement">
+        <bpmn:flowNodeRef>T_VerifyCollateral</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Collateral</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Revaluation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_StillNotOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_RejectApp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_RejectedCollateral</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_VerifyBank</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ValidAccount</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_RequestCorrect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_InitB</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_CoreBanking" name="Core Banking System">
+        <bpmn:flowNodeRef>T_CreateTemp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_SysErr1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Retry1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Still1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_ManualRecord</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_UpdateStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_CreateLoanDisburse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_SysErr2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Retry2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Still2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_Disb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_UpdateLoanStatus</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="T_Submit" name="Submit Loan Application (with documents)" camunda:candidateGroups="applicants">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Ev_MissingDocs" name="Missing/Invalid documents">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:messageEventDefinition camunda:type="external" camunda:topic="missing-invalid-documents" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="T_Provide" name="Provide Missing / Correct Documents (max 3 attempts)" camunda:candidateGroups="applicants">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_Provide7d" name="7 days" attachedToRef="T_Provide">
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:timerEventDefinition><bpmn:timeDuration>P7D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:exclusiveGateway id="GW_Resubmitted" name="Resubmitted in time?" default="Flow_9">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Lapsed" name="Application Lapsed">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="T_ReceiveOffer" name="Receive Loan Offer" camunda:candidateGroups="applicants">
+      <bpmn:incoming>Flow_30</bpmn:incoming>
+      <bpmn:outgoing>Flow_31</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_AcceptOffer" name="Accept Offer within validity (15 days)?" default="Flow_33">
+      <bpmn:incoming>Flow_31</bpmn:incoming>
+      <bpmn:outgoing>Flow_32</bpmn:outgoing>
+      <bpmn:outgoing>Flow_33</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_OfferExpired" name="Offer Expired">
+      <bpmn:incoming>Flow_33</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="T_ESign" name="E-sign Loan Agreement" camunda:candidateGroups="applicants">
+      <bpmn:incoming>Flow_32</bpmn:incoming>
+      <bpmn:outgoing>Flow_37</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_ESign7d" name="7 days" attachedToRef="T_ESign">
+      <bpmn:outgoing>Flow_34</bpmn:outgoing>
+      <bpmn:timerEventDefinition><bpmn:timeDuration>P7D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="B_ESignMsg" name="Withdrawal request" attachedToRef="T_ESign">
+      <bpmn:outgoing>Flow_35</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_Withdraw" />
+    </bpmn:boundaryEvent>
+    <bpmn:intermediateThrowEvent id="Ev_Withdraw" name="Withdraw at any stage">
+      <bpmn:incoming>Flow_35</bpmn:incoming>
+      <bpmn:outgoing>Flow_36</bpmn:outgoing>
+      <bpmn:messageEventDefinition camunda:type="external" camunda:topic="withdraw-application" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="End_Withdrawn" name="Application Withdrawn">
+      <bpmn:incoming>Flow_34</bpmn:incoming>
+      <bpmn:incoming>Flow_36</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="T_Initial" name="Initial Review &amp; Check Document Completeness" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_DocsValid" name="Documents valid?" default="Flow_5">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Verify" name="Verify Identity (KYC)" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_CheckIncome" name="Check Income / Employment" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="J_Join">
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="T_Prepare" name="Prepare Credit Assessment Report" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_GenOffer" name="Generate Loan Offer (Amount, Tenure, Interest Rate)" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:incoming>Flow_25</bpmn:incoming>
+      <bpmn:incoming>Flow_28</bpmn:incoming>
+      <bpmn:outgoing>Flow_30</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="F_Fork">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="GW_AutoApprove" name="Auto Approve?" default="Flow_23">
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_ManualReview" name="Manual Review by Underwriter" camunda:candidateGroups="underwriters">
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Approve" name="Approve?" default="Flow_27">
+      <bpmn:incoming>Flow_24</bpmn:incoming>
+      <bpmn:outgoing>Flow_25</bpmn:outgoing>
+      <bpmn:outgoing>Flow_26</bpmn:outgoing>
+      <bpmn:outgoing>Flow_27</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Counter" name="Generate Counter Offer" camunda:candidateGroups="underwriters">
+      <bpmn:incoming>Flow_26</bpmn:incoming>
+      <bpmn:outgoing>Flow_28</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_SendRejection" name="Send Rejection Reason" camunda:candidateGroups="underwriters">
+      <bpmn:incoming>Flow_27</bpmn:incoming>
+      <bpmn:outgoing>Flow_29</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_AppRejected" name="Application Rejected">
+      <bpmn:incoming>Flow_29</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:businessRuleTask id="T_InitA" name="Initiate Disbursement" camunda:type="external" camunda:topic="initiate-disbursement">
+      <bpmn:incoming>Flow_37</bpmn:incoming>
+      <bpmn:incoming>Flow_57</bpmn:incoming>
+      <bpmn:outgoing>Flow_38</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:boundaryEvent id="B_DisbError" name="Disbursement error" attachedToRef="T_InitA">
+      <bpmn:outgoing>Flow_54</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_Disbursement" />
+    </bpmn:boundaryEvent>
+    <bpmn:exclusiveGateway id="GW_DisbSuccess" name="Disbursement successful?" default="Flow_52">
+      <bpmn:incoming>Flow_50</bpmn:incoming>
+      <bpmn:outgoing>Flow_51</bpmn:outgoing>
+      <bpmn:outgoing>Flow_52</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_CreateLoanAccount" name="Create Loan Account" camunda:candidateGroups="underwriters">
+      <bpmn:incoming>Flow_51</bpmn:incoming>
+      <bpmn:outgoing>Flow_53</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_LoanDisbursed" name="Loan Disbursed">
+      <bpmn:incoming>Flow_53</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="T_RunFraud" name="Run Fraud / AML Checks" camunda:type="external" camunda:topic="run-fraud-aml-checks">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_59</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_FraudFlag" name="Fraud / Sanction Flag?" default="Flow_61">
+      <bpmn:incoming>Flow_59</bpmn:incoming>
+      <bpmn:outgoing>Flow_60</bpmn:outgoing>
+      <bpmn:outgoing>Flow_61</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_Investigate" name="Investigate Case" camunda:type="external" camunda:topic="investigate-case">
+      <bpmn:incoming>Flow_60</bpmn:incoming>
+      <bpmn:outgoing>Flow_62</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_FraudConfirmed" name="Fraud Confirmed?" default="Flow_64">
+      <bpmn:incoming>Flow_62</bpmn:incoming>
+      <bpmn:outgoing>Flow_63</bpmn:outgoing>
+      <bpmn:outgoing>Flow_64</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_RejectFile" name="Reject Application &amp; File Report" camunda:type="external" camunda:topic="reject-and-file-report">
+      <bpmn:incoming>Flow_63</bpmn:incoming>
+      <bpmn:outgoing>Flow_65</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Terminate" name="Terminate process Rejected (Fraud)">
+      <bpmn:incoming>Flow_65</bpmn:incoming>
+      <bpmn:terminateEventDefinition />
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Merge_Fraud">
+      <bpmn:incoming>Flow_61</bpmn:incoming>
+      <bpmn:incoming>Flow_64</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_Handle" name="Handle Disbursement Failure (Retry / Manual)" camunda:type="external" camunda:topic="handle-disbursement-failure">
+      <bpmn:incoming>Flow_52</bpmn:incoming>
+      <bpmn:incoming>Flow_54</bpmn:incoming>
+      <bpmn:outgoing>Flow_55</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="B_Retry" name="Retry (3 times)" attachedToRef="T_Handle" cancelActivity="false">
+      <bpmn:timerEventDefinition><bpmn:timeDuration>PT5M</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="T_RequestCredit" name="Request Credit Report" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:incoming>Flow_70</bpmn:incoming>
+      <bpmn:outgoing>Flow_66</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_Api" name="System error / API timeout" attachedToRef="T_RequestCredit">
+      <bpmn:outgoing>Flow_67</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_ApiTimeout" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="T_RetryC" name="Retry (3 times)" camunda:type="external" camunda:topic="retry-credit-request">
+      <bpmn:incoming>Flow_67</bpmn:incoming>
+      <bpmn:outgoing>Flow_68</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_StillC" name="Still fails?" default="Flow_70">
+      <bpmn:incoming>Flow_68</bpmn:incoming>
+      <bpmn:outgoing>Flow_69</bpmn:outgoing>
+      <bpmn:outgoing>Flow_70</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_ManualCredit" name="Manual Credit Check (by Loan Officer)" camunda:candidateGroups="loan-officers">
+      <bpmn:incoming>Flow_69</bpmn:incoming>
+      <bpmn:outgoing>Flow_71</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:receiveTask id="T_ReceiveCredit" name="Receive Credit Report" messageRef="Message_CreditReport">
+      <bpmn:incoming>Flow_66</bpmn:incoming>
+      <bpmn:incoming>Flow_71</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="GW_Outcome" default="Flow_56">
+      <bpmn:incoming>Flow_55</bpmn:incoming>
+      <bpmn:outgoing>Flow_56</bpmn:outgoing>
+      <bpmn:outgoing>Flow_57</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Hold" name="Hold Funds &amp; Contact Applicant" camunda:candidateGroups="operations">
+      <bpmn:incoming>Flow_56</bpmn:incoming>
+      <bpmn:outgoing>Flow_58</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_AppFailed" name="Application Failed">
+      <bpmn:incoming>Flow_58</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="T_VerifyCollateral" name="Verify Collateral (if secured loan)" camunda:type="external" camunda:topic="verify-collateral">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_72</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Collateral" name="Collateral" default="Flow_74">
+      <bpmn:incoming>Flow_72</bpmn:incoming>
+      <bpmn:outgoing>Flow_73</bpmn:outgoing>
+      <bpmn:outgoing>Flow_74</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_Revaluation" name="Revaluation / Reduce LTV" camunda:type="external" camunda:topic="revaluation-reduce-ltv">
+      <bpmn:incoming>Flow_74</bpmn:incoming>
+      <bpmn:outgoing>Flow_75</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_StillNotOK" name="Still not OK?" default="Flow_77">
+      <bpmn:incoming>Flow_75</bpmn:incoming>
+      <bpmn:outgoing>Flow_76</bpmn:outgoing>
+      <bpmn:outgoing>Flow_77</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_RejectApp" name="Reject Application" camunda:type="external" camunda:topic="reject-application">
+      <bpmn:incoming>Flow_76</bpmn:incoming>
+      <bpmn:outgoing>Flow_78</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_RejectedCollateral" name="Rejected (Insufficient Collateral)">
+      <bpmn:incoming>Flow_78</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="T_VerifyBank" name="Verify Bank Account Details" camunda:type="external" camunda:topic="verify-bank-account">
+      <bpmn:incoming>Flow_38</bpmn:incoming>
+      <bpmn:incoming>Flow_41</bpmn:incoming>
+      <bpmn:outgoing>Flow_39</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_ValidAccount" name="Valid account?" default="Flow_40">
+      <bpmn:incoming>Flow_39</bpmn:incoming>
+      <bpmn:outgoing>Flow_40</bpmn:outgoing>
+      <bpmn:outgoing>Flow_42</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_RequestCorrect" name="Request Correct Account Details" camunda:candidateGroups="operations">
+      <bpmn:incoming>Flow_40</bpmn:incoming>
+      <bpmn:outgoing>Flow_41</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="T_InitB" name="Initiate Disbursement" camunda:type="external" camunda:topic="initiate-disbursement-ops">
+      <bpmn:incoming>Flow_43</bpmn:incoming>
+      <bpmn:outgoing>Flow_48</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:serviceTask id="T_CreateTemp" name="Create Temporary Application Record" camunda:type="external" camunda:topic="create-temp-record">
+      <bpmn:incoming>Flow_73</bpmn:incoming>
+      <bpmn:incoming>Flow_77</bpmn:incoming>
+      <bpmn:incoming>Flow_83</bpmn:incoming>
+      <bpmn:outgoing>Flow_79</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="B_SysErr1" name="System error" attachedToRef="T_CreateTemp">
+      <bpmn:outgoing>Flow_80</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_System" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="T_Retry1" name="Retry (3 times)" camunda:type="external" camunda:topic="retry-temp-record">
+      <bpmn:incoming>Flow_80</bpmn:incoming>
+      <bpmn:outgoing>Flow_81</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Still1" name="Still fails?" default="Flow_83">
+      <bpmn:incoming>Flow_81</bpmn:incoming>
+      <bpmn:outgoing>Flow_82</bpmn:outgoing>
+      <bpmn:outgoing>Flow_83</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_ManualRecord" name="Manual Record by Operations" camunda:candidateGroups="operations">
+      <bpmn:incoming>Flow_82</bpmn:incoming>
+      <bpmn:outgoing>Flow_84</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_UpdateStatus" name="Update Application Status" camunda:candidateGroups="operations">
+      <bpmn:incoming>Flow_79</bpmn:incoming>
+      <bpmn:incoming>Flow_84</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="T_CreateLoanDisburse" name="Create Loan Account &amp; Disburse Funds" camunda:type="external" camunda:topic="create-loan-account-disburse">
+      <bpmn:incoming>Flow_42</bpmn:incoming>
+      <bpmn:incoming>Flow_47</bpmn:incoming>
+      <bpmn:outgoing>Flow_43</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="B_SysErr2" name="System error" attachedToRef="T_CreateLoanDisburse">
+      <bpmn:outgoing>Flow_44</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_System" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="T_Retry2" name="Retry (3 times)" camunda:type="external" camunda:topic="retry-create-loan-account">
+      <bpmn:incoming>Flow_44</bpmn:incoming>
+      <bpmn:outgoing>Flow_45</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Still2" name="Still fails?" default="Flow_47">
+      <bpmn:incoming>Flow_45</bpmn:incoming>
+      <bpmn:outgoing>Flow_46</bpmn:outgoing>
+      <bpmn:outgoing>Flow_47</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="Ev_Disb">
+      <bpmn:incoming>Flow_46</bpmn:incoming>
+      <bpmn:incoming>Flow_48</bpmn:incoming>
+      <bpmn:outgoing>Flow_49</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_DisbursementConfirmed" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sendTask id="T_UpdateLoanStatus" name="Update Loan Status and Send Notifications" camunda:type="external" camunda:topic="update-loan-status-notify">
+      <bpmn:incoming>Flow_49</bpmn:incoming>
+      <bpmn:outgoing>Flow_50</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start" targetRef="T_Submit" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="T_Submit" targetRef="T_Initial" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="T_Initial" targetRef="GW_DocsValid" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_DocsValid" targetRef="F_Fork" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${documentsValid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="GW_DocsValid" targetRef="Ev_MissingDocs" name="No" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Ev_MissingDocs" targetRef="T_Provide" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="T_Provide" targetRef="GW_Resubmitted" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="B_Provide7d" targetRef="End_Lapsed" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="GW_Resubmitted" targetRef="End_Lapsed" name="No" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="GW_Resubmitted" targetRef="T_Initial" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resubmittedInTime}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="F_Fork" targetRef="T_Verify" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="F_Fork" targetRef="T_RunFraud" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="F_Fork" targetRef="T_RequestCredit" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="F_Fork" targetRef="T_VerifyCollateral" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="T_Verify" targetRef="T_CheckIncome" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="T_CheckIncome" targetRef="J_Join" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="T_ReceiveCredit" targetRef="J_Join" name="Report received" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Merge_Fraud" targetRef="J_Join" />
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="T_UpdateStatus" targetRef="J_Join" />
+    <bpmn:sequenceFlow id="Flow_20" sourceRef="J_Join" targetRef="T_Prepare" />
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="T_Prepare" targetRef="GW_AutoApprove" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="GW_AutoApprove" targetRef="T_GenOffer" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${autoApprove}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_23" sourceRef="GW_AutoApprove" targetRef="T_ManualReview" name="No" />
+    <bpmn:sequenceFlow id="Flow_24" sourceRef="T_ManualReview" targetRef="GW_Approve" />
+    <bpmn:sequenceFlow id="Flow_25" sourceRef="GW_Approve" targetRef="T_GenOffer" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${decision == 'approve'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_26" sourceRef="GW_Approve" targetRef="T_Counter" name="Counter-offer">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${decision == 'counter'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_27" sourceRef="GW_Approve" targetRef="T_SendRejection" name="Reject" />
+    <bpmn:sequenceFlow id="Flow_28" sourceRef="T_Counter" targetRef="T_GenOffer" />
+    <bpmn:sequenceFlow id="Flow_29" sourceRef="T_SendRejection" targetRef="End_AppRejected" />
+    <bpmn:sequenceFlow id="Flow_30" sourceRef="T_GenOffer" targetRef="T_ReceiveOffer" />
+    <bpmn:sequenceFlow id="Flow_31" sourceRef="T_ReceiveOffer" targetRef="GW_AcceptOffer" />
+    <bpmn:sequenceFlow id="Flow_32" sourceRef="GW_AcceptOffer" targetRef="T_ESign" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${offerAccepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_33" sourceRef="GW_AcceptOffer" targetRef="End_OfferExpired" name="No" />
+    <bpmn:sequenceFlow id="Flow_34" sourceRef="B_ESign7d" targetRef="End_Withdrawn" />
+    <bpmn:sequenceFlow id="Flow_35" sourceRef="B_ESignMsg" targetRef="Ev_Withdraw" />
+    <bpmn:sequenceFlow id="Flow_36" sourceRef="Ev_Withdraw" targetRef="End_Withdrawn" />
+    <bpmn:sequenceFlow id="Flow_37" sourceRef="T_ESign" targetRef="T_InitA" />
+    <bpmn:sequenceFlow id="Flow_38" sourceRef="T_InitA" targetRef="T_VerifyBank" />
+    <bpmn:sequenceFlow id="Flow_39" sourceRef="T_VerifyBank" targetRef="GW_ValidAccount" />
+    <bpmn:sequenceFlow id="Flow_40" sourceRef="GW_ValidAccount" targetRef="T_RequestCorrect" name="No" />
+    <bpmn:sequenceFlow id="Flow_41" sourceRef="T_RequestCorrect" targetRef="T_VerifyBank" />
+    <bpmn:sequenceFlow id="Flow_42" sourceRef="GW_ValidAccount" targetRef="T_CreateLoanDisburse" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${accountValid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_43" sourceRef="T_CreateLoanDisburse" targetRef="T_InitB" />
+    <bpmn:sequenceFlow id="Flow_44" sourceRef="B_SysErr2" targetRef="T_Retry2" name="System error" />
+    <bpmn:sequenceFlow id="Flow_45" sourceRef="T_Retry2" targetRef="GW_Still2" />
+    <bpmn:sequenceFlow id="Flow_46" sourceRef="GW_Still2" targetRef="Ev_Disb" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${stillFails}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_47" sourceRef="GW_Still2" targetRef="T_CreateLoanDisburse" name="No" />
+    <bpmn:sequenceFlow id="Flow_48" sourceRef="T_InitB" targetRef="Ev_Disb" />
+    <bpmn:sequenceFlow id="Flow_49" sourceRef="Ev_Disb" targetRef="T_UpdateLoanStatus" />
+    <bpmn:sequenceFlow id="Flow_50" sourceRef="T_UpdateLoanStatus" targetRef="GW_DisbSuccess" />
+    <bpmn:sequenceFlow id="Flow_51" sourceRef="GW_DisbSuccess" targetRef="T_CreateLoanAccount" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disbursementSuccessful}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_52" sourceRef="GW_DisbSuccess" targetRef="T_Handle" name="No" />
+    <bpmn:sequenceFlow id="Flow_53" sourceRef="T_CreateLoanAccount" targetRef="End_LoanDisbursed" />
+    <bpmn:sequenceFlow id="Flow_54" sourceRef="B_DisbError" targetRef="T_Handle" name="Disbursement error" />
+    <bpmn:sequenceFlow id="Flow_55" sourceRef="T_Handle" targetRef="GW_Outcome" />
+    <bpmn:sequenceFlow id="Flow_56" sourceRef="GW_Outcome" targetRef="T_Hold" name="No" />
+    <bpmn:sequenceFlow id="Flow_57" sourceRef="GW_Outcome" targetRef="T_InitA" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${retryAllowed}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_58" sourceRef="T_Hold" targetRef="End_AppFailed" />
+    <bpmn:sequenceFlow id="Flow_59" sourceRef="T_RunFraud" targetRef="GW_FraudFlag" />
+    <bpmn:sequenceFlow id="Flow_60" sourceRef="GW_FraudFlag" targetRef="T_Investigate" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fraudFlag}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_61" sourceRef="GW_FraudFlag" targetRef="Merge_Fraud" name="No" />
+    <bpmn:sequenceFlow id="Flow_62" sourceRef="T_Investigate" targetRef="GW_FraudConfirmed" />
+    <bpmn:sequenceFlow id="Flow_63" sourceRef="GW_FraudConfirmed" targetRef="T_RejectFile" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fraudConfirmed}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_64" sourceRef="GW_FraudConfirmed" targetRef="Merge_Fraud" name="No" />
+    <bpmn:sequenceFlow id="Flow_65" sourceRef="T_RejectFile" targetRef="End_Terminate" />
+    <bpmn:sequenceFlow id="Flow_66" sourceRef="T_RequestCredit" targetRef="T_ReceiveCredit" name="Report" />
+    <bpmn:sequenceFlow id="Flow_67" sourceRef="B_Api" targetRef="T_RetryC" name="System error / API timeout" />
+    <bpmn:sequenceFlow id="Flow_68" sourceRef="T_RetryC" targetRef="GW_StillC" />
+    <bpmn:sequenceFlow id="Flow_69" sourceRef="GW_StillC" targetRef="T_ManualCredit" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${stillFails}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_70" sourceRef="GW_StillC" targetRef="T_RequestCredit" name="No" />
+    <bpmn:sequenceFlow id="Flow_71" sourceRef="T_ManualCredit" targetRef="T_ReceiveCredit" />
+    <bpmn:sequenceFlow id="Flow_72" sourceRef="T_VerifyCollateral" targetRef="GW_Collateral" />
+    <bpmn:sequenceFlow id="Flow_73" sourceRef="GW_Collateral" targetRef="T_CreateTemp" name="OK">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${collateralOk}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_74" sourceRef="GW_Collateral" targetRef="T_Revaluation" name="No" />
+    <bpmn:sequenceFlow id="Flow_75" sourceRef="T_Revaluation" targetRef="GW_StillNotOK" />
+    <bpmn:sequenceFlow id="Flow_76" sourceRef="GW_StillNotOK" targetRef="T_RejectApp" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${stillNotOk}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_77" sourceRef="GW_StillNotOK" targetRef="T_CreateTemp" name="No" />
+    <bpmn:sequenceFlow id="Flow_78" sourceRef="T_RejectApp" targetRef="End_RejectedCollateral" />
+    <bpmn:sequenceFlow id="Flow_79" sourceRef="T_CreateTemp" targetRef="T_UpdateStatus" />
+    <bpmn:sequenceFlow id="Flow_80" sourceRef="B_SysErr1" targetRef="T_Retry1" name="System error" />
+    <bpmn:sequenceFlow id="Flow_81" sourceRef="T_Retry1" targetRef="GW_Still1" />
+    <bpmn:sequenceFlow id="Flow_82" sourceRef="GW_Still1" targetRef="T_ManualRecord" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${stillFails}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_83" sourceRef="GW_Still1" targetRef="T_CreateTemp" name="No" />
+    <bpmn:sequenceFlow id="Flow_84" sourceRef="T_ManualRecord" targetRef="T_UpdateStatus" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_Main_di" bpmnElement="Participant_Main" isHorizontal="true"><dc:Bounds x="8" y="53" width="1522" height="882" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Applicant_di" bpmnElement="Lane_Applicant" isHorizontal="true" bioc:fill="#fbd5d5" color:background-color="#fbd5d5"><dc:Bounds x="38" y="53" width="1492" height="140" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_LoanOfficer_di" bpmnElement="Lane_LoanOfficer" isHorizontal="true" bioc:fill="#cfe3fb" color:background-color="#cfe3fb"><dc:Bounds x="38" y="193" width="1492" height="135" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Underwriter_di" bpmnElement="Lane_Underwriter" isHorizontal="true" bioc:fill="#d5f3d5" color:background-color="#d5f3d5"><dc:Bounds x="38" y="328" width="1492" height="182" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Fraud_di" bpmnElement="Lane_Fraud" isHorizontal="true" bioc:fill="#fdf1c0" color:background-color="#fdf1c0"><dc:Bounds x="38" y="510" width="1492" height="116" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CreditBureau_di" bpmnElement="Lane_CreditBureau" isHorizontal="true" bioc:fill="#e6d9fb" color:background-color="#e6d9fb"><dc:Bounds x="38" y="626" width="1492" height="114" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Operations_di" bpmnElement="Lane_Operations" isHorizontal="true" bioc:fill="#fde5cf" color:background-color="#fde5cf"><dc:Bounds x="38" y="740" width="1492" height="98" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CoreBanking_di" bpmnElement="Lane_CoreBanking" isHorizontal="true" bioc:fill="#cdeefa" color:background-color="#cdeefa"><dc:Bounds x="38" y="838" width="1492" height="97" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_di" bpmnElement="Start" bioc:stroke="#43a047" bioc:fill="#d1fae5" color:background-color="#d1fae5" color:border-color="#43a047"><dc:Bounds x="125" y="107" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Submit_di" bpmnElement="T_Submit" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="178" y="97" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_MissingDocs_di" bpmnElement="Ev_MissingDocs" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="308" y="95" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Provide_di" bpmnElement="T_Provide" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="371" y="106" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Provide7d_di" bpmnElement="B_Provide7d" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="437" y="88" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Resubmitted_di" bpmnElement="GW_Resubmitted" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="498" y="93" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Lapsed_di" bpmnElement="End_Lapsed" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="637" y="100" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ReceiveOffer_di" bpmnElement="T_ReceiveOffer" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="903" y="100" width="108" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_AcceptOffer_di" bpmnElement="GW_AcceptOffer" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1027" y="100" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_OfferExpired_di" bpmnElement="End_OfferExpired" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="1082" y="157" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ESign_di" bpmnElement="T_ESign" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1153" y="100" width="90" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_ESign7d_di" bpmnElement="B_ESign7d" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1152" y="79" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_ESignMsg_di" bpmnElement="B_ESignMsg" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1225" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_Withdraw_di" bpmnElement="Ev_Withdraw" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1332" y="124" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Withdrawn_di" bpmnElement="End_Withdrawn" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="1439" y="82" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Initial_di" bpmnElement="T_Initial" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="155" y="237" width="124" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DocsValid_di" bpmnElement="GW_DocsValid" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="301" y="230" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Verify_di" bpmnElement="T_Verify" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="397" y="237" width="96" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_CheckIncome_di" bpmnElement="T_CheckIncome" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="500" y="204" width="112" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J_Join_di" bpmnElement="J_Join" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="538" y="290" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Prepare_di" bpmnElement="T_Prepare" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="622" y="240" width="110" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_GenOffer_di" bpmnElement="T_GenOffer" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="888" y="275" width="138" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_Fork_di" bpmnElement="F_Fork" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="308" y="334" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_AutoApprove_di" bpmnElement="GW_AutoApprove" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="643" y="336" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ManualReview_di" bpmnElement="T_ManualReview" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="658" y="395" width="98" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Approve_di" bpmnElement="GW_Approve" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="771" y="390" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Counter_di" bpmnElement="T_Counter" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="891" y="418" width="104" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_SendRejection_di" bpmnElement="T_SendRejection" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="867" y="468" width="88" height="40" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AppRejected_di" bpmnElement="End_AppRejected" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="982" y="470" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_InitA_di" bpmnElement="T_InitA" bioc:stroke="#d97706" bioc:fill="#fef3c7" color:background-color="#fef3c7" color:border-color="#d97706"><dc:Bounds x="1143" y="452" width="98" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_DisbError_di" bpmnElement="B_DisbError" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="1212" y="478" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DisbSuccess_di" bpmnElement="GW_DisbSuccess" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1280" y="451" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_CreateLoanAccount_di" bpmnElement="T_CreateLoanAccount" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1350" y="452" width="96" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_LoanDisbursed_di" bpmnElement="End_LoanDisbursed" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="1479" y="456" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RunFraud_di" bpmnElement="T_RunFraud" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="295" y="532" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_FraudFlag_di" bpmnElement="GW_FraudFlag" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="406" y="540" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Investigate_di" bpmnElement="T_Investigate" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="505" y="537" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_FraudConfirmed_di" bpmnElement="GW_FraudConfirmed" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="635" y="551" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RejectFile_di" bpmnElement="T_RejectFile" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="726" y="550" width="112" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Terminate_di" bpmnElement="End_Terminate" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="881" y="554" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Merge_Fraud_di" bpmnElement="Merge_Fraud" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="472" y="590" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Handle_di" bpmnElement="T_Handle" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="1269" y="560" width="116" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Retry_di" bpmnElement="B_Retry" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1272" y="586" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RequestCredit_di" bpmnElement="T_RequestCredit" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="346" y="628" width="100" height="52" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Api_di" bpmnElement="B_Api" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="328" y="648" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RetryC_di" bpmnElement="T_RetryC" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="281" y="699" width="80" height="32" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_StillC_di" bpmnElement="GW_StillC" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="385" y="693" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ManualCredit_di" bpmnElement="T_ManualCredit" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="468" y="696" width="120" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ReceiveCredit_di" bpmnElement="T_ReceiveCredit" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="610" y="664" width="96" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Outcome_di" bpmnElement="GW_Outcome" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1309" y="625" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Hold_di" bpmnElement="T_Hold" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1355" y="659" width="90" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AppFailed_di" bpmnElement="End_AppFailed" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="1456" y="655" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_VerifyCollateral_di" bpmnElement="T_VerifyCollateral" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="137" y="762" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Collateral_di" bpmnElement="GW_Collateral" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="260" y="763" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Revaluation_di" bpmnElement="T_Revaluation" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="338" y="760" width="104" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_StillNotOK_di" bpmnElement="GW_StillNotOK" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="469" y="763" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RejectApp_di" bpmnElement="T_RejectApp" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="561" y="766" width="104" height="44" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_RejectedCollateral_di" bpmnElement="End_RejectedCollateral" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="679" y="764" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_VerifyBank_di" bpmnElement="T_VerifyBank" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="843" y="757" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_ValidAccount_di" bpmnElement="GW_ValidAccount" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="954" y="765" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RequestCorrect_di" bpmnElement="T_RequestCorrect" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1008" y="762" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_InitB_di" bpmnElement="T_InitB" bioc:stroke="#d97706" bioc:fill="#fef3c7" color:background-color="#fef3c7" color:border-color="#d97706"><dc:Bounds x="1131" y="762" width="98" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_CreateTemp_di" bpmnElement="T_CreateTemp" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="164" y="857" width="108" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_SysErr1_di" bpmnElement="B_SysErr1" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="254" y="852" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Retry1_di" bpmnElement="T_Retry1" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="302" y="880" width="90" height="40" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Still1_di" bpmnElement="GW_Still1" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="410" y="875" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_ManualRecord_di" bpmnElement="T_ManualRecord" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="487" y="860" width="116" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_UpdateStatus_di" bpmnElement="T_UpdateStatus" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="680" y="859" width="134" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_CreateLoanDisburse_di" bpmnElement="T_CreateLoanDisburse" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="877" y="860" width="120" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_SysErr2_di" bpmnElement="B_SysErr2" bioc:stroke="#dc2626" bioc:fill="#fecaca" color:background-color="#fecaca" color:border-color="#dc2626"><dc:Bounds x="957" y="895" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Retry2_di" bpmnElement="T_Retry2" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="1012" y="873" width="90" height="40" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Still2_di" bpmnElement="GW_Still2" isMarkerVisible="true" bioc:stroke="#f57c00" bioc:fill="#fff3e0" color:background-color="#fff3e0" color:border-color="#f57c00"><dc:Bounds x="1108" y="863" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_Disb_di" bpmnElement="Ev_Disb" bioc:stroke="#1e88e5" bioc:fill="#dbeafe" color:background-color="#dbeafe" color:border-color="#1e88e5"><dc:Bounds x="1185" y="870" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_UpdateLoanStatus_di" bpmnElement="T_UpdateLoanStatus" bioc:stroke="#7e22ce" bioc:fill="#ede9fe" color:background-color="#ede9fe" color:border-color="#7e22ce"><dc:Bounds x="1260" y="865" width="124" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="161" y="125" />
+        <di:waypoint x="178" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="222" y="153" />
+        <di:waypoint x="222" y="234" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="279" y="262" />
+        <di:waypoint x="290" y="262" />
+        <di:waypoint x="290" y="255" />
+        <di:waypoint x="301" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="326" y="280" />
+        <di:waypoint x="326" y="334" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="326" y="230" />
+        <di:waypoint x="326" y="131" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="344" y="113" />
+        <di:waypoint x="357" y="113" />
+        <di:waypoint x="357" y="134" />
+        <di:waypoint x="371" y="134" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="479" y="134" />
+        <di:waypoint x="488.5" y="134" />
+        <di:waypoint x="488.5" y="118" />
+        <di:waypoint x="498" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="455" y="88" />
+        <di:waypoint x="455" y="75" />
+        <di:waypoint x="655" y="75" />
+        <di:waypoint x="655" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="548" y="118" />
+        <di:waypoint x="637" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="523" y="143" />
+        <di:waypoint x="523" y="178" />
+        <di:waypoint x="200" y="178" />
+        <di:waypoint x="200" y="234" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="344" y="352" />
+        <di:waypoint x="445" y="352" />
+        <di:waypoint x="445" y="287" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="326" y="370" />
+        <di:waypoint x="326" y="538" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="308" y="352" />
+        <di:waypoint x="254" y="352" />
+        <di:waypoint x="254" y="610" />
+        <di:waypoint x="370" y="610" />
+        <di:waypoint x="370" y="628" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="308" y="352" />
+        <di:waypoint x="185" y="352" />
+        <di:waypoint x="185" y="762" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="445" y="237" />
+        <di:waypoint x="445" y="226" />
+        <di:waypoint x="500" y="226" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="556" y="248" />
+        <di:waypoint x="556" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="658" y="664" />
+        <di:waypoint x="658" y="640" />
+        <di:waypoint x="624" y="640" />
+        <di:waypoint x="624" y="340" />
+        <di:waypoint x="556" y="340" />
+        <di:waypoint x="556" y="326" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
+        <di:waypoint x="490" y="590" />
+        <di:waypoint x="490" y="346" />
+        <di:waypoint x="556" y="346" />
+        <di:waypoint x="556" y="326" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19">
+        <di:waypoint x="747" y="856" />
+        <di:waypoint x="747" y="846" />
+        <di:waypoint x="1123" y="846" />
+        <di:waypoint x="1123" y="332" />
+        <di:waypoint x="556" y="332" />
+        <di:waypoint x="556" y="326" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20">
+        <di:waypoint x="574" y="308" />
+        <di:waypoint x="677" y="308" />
+        <di:waypoint x="677" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21">
+        <di:waypoint x="668" y="290" />
+        <di:waypoint x="668" y="336" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_22_di" bpmnElement="Flow_22">
+        <di:waypoint x="693" y="361" />
+        <di:waypoint x="818" y="361" />
+        <di:waypoint x="818" y="300" />
+        <di:waypoint x="888" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_23_di" bpmnElement="Flow_23">
+        <di:waypoint x="668" y="386" />
+        <di:waypoint x="668" y="420" />
+        <di:waypoint x="658" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24">
+        <di:waypoint x="756" y="420" />
+        <di:waypoint x="763.5" y="420" />
+        <di:waypoint x="763.5" y="415" />
+        <di:waypoint x="771" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_25_di" bpmnElement="Flow_25">
+        <di:waypoint x="821" y="415" />
+        <di:waypoint x="958" y="415" />
+        <di:waypoint x="958" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_26_di" bpmnElement="Flow_26">
+        <di:waypoint x="796" y="440" />
+        <di:waypoint x="796" y="440" />
+        <di:waypoint x="891" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_27_di" bpmnElement="Flow_27">
+        <di:waypoint x="796" y="440" />
+        <di:waypoint x="796" y="488" />
+        <di:waypoint x="867" y="488" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_28_di" bpmnElement="Flow_28">
+        <di:waypoint x="995" y="440" />
+        <di:waypoint x="1010" y="440" />
+        <di:waypoint x="1010" y="300" />
+        <di:waypoint x="1026" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_29_di" bpmnElement="Flow_29">
+        <di:waypoint x="955" y="488" />
+        <di:waypoint x="982" y="488" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_30_di" bpmnElement="Flow_30">
+        <di:waypoint x="957" y="275" />
+        <di:waypoint x="957" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_31_di" bpmnElement="Flow_31">
+        <di:waypoint x="1011" y="125" />
+        <di:waypoint x="1027" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_32_di" bpmnElement="Flow_32">
+        <di:waypoint x="1077" y="125" />
+        <di:waypoint x="1153" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_33_di" bpmnElement="Flow_33">
+        <di:waypoint x="1052" y="150" />
+        <di:waypoint x="1052" y="175" />
+        <di:waypoint x="1082" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_34_di" bpmnElement="Flow_34">
+        <di:waypoint x="1170" y="79" />
+        <di:waypoint x="1170" y="65" />
+        <di:waypoint x="1457" y="65" />
+        <di:waypoint x="1457" y="82" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_35_di" bpmnElement="Flow_35">
+        <di:waypoint x="1261" y="115" />
+        <di:waypoint x="1350" y="115" />
+        <di:waypoint x="1350" y="124" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_36_di" bpmnElement="Flow_36">
+        <di:waypoint x="1368" y="142" />
+        <di:waypoint x="1457" y="142" />
+        <di:waypoint x="1457" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_37_di" bpmnElement="Flow_37">
+        <di:waypoint x="1198" y="153" />
+        <di:waypoint x="1198" y="452" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_38_di" bpmnElement="Flow_38">
+        <di:waypoint x="1167" y="496" />
+        <di:waypoint x="1167" y="720" />
+        <di:waypoint x="897" y="720" />
+        <di:waypoint x="897" y="757" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_39_di" bpmnElement="Flow_39">
+        <di:waypoint x="951" y="785" />
+        <di:waypoint x="952.5" y="785" />
+        <di:waypoint x="952.5" y="790" />
+        <di:waypoint x="954" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_40_di" bpmnElement="Flow_40">
+        <di:waypoint x="1004" y="790" />
+        <di:waypoint x="1008" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_41_di" bpmnElement="Flow_41">
+        <di:waypoint x="1062" y="812" />
+        <di:waypoint x="1062" y="828" />
+        <di:waypoint x="897" y="828" />
+        <di:waypoint x="897" y="813" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_42_di" bpmnElement="Flow_42">
+        <di:waypoint x="979" y="815" />
+        <di:waypoint x="979" y="835" />
+        <di:waypoint x="937" y="835" />
+        <di:waypoint x="937" y="857" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_43_di" bpmnElement="Flow_43">
+        <di:waypoint x="997" y="860" />
+        <di:waypoint x="1110" y="860" />
+        <di:waypoint x="1110" y="787" />
+        <di:waypoint x="1131" y="787" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_44_di" bpmnElement="Flow_44">
+        <di:waypoint x="975" y="931" />
+        <di:waypoint x="1057" y="931" />
+        <di:waypoint x="1057" y="913" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_45_di" bpmnElement="Flow_45">
+        <di:waypoint x="1102" y="893" />
+        <di:waypoint x="1105" y="893" />
+        <di:waypoint x="1105" y="888" />
+        <di:waypoint x="1108" y="888" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_46_di" bpmnElement="Flow_46">
+        <di:waypoint x="1158" y="888" />
+        <di:waypoint x="1185" y="888" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_47_di" bpmnElement="Flow_47">
+        <di:waypoint x="1133" y="863" />
+        <di:waypoint x="1133" y="845" />
+        <di:waypoint x="955" y="845" />
+        <di:waypoint x="955" y="857" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_48_di" bpmnElement="Flow_48">
+        <di:waypoint x="1180" y="812" />
+        <di:waypoint x="1180" y="830" />
+        <di:waypoint x="1203" y="830" />
+        <di:waypoint x="1203" y="870" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_49_di" bpmnElement="Flow_49">
+        <di:waypoint x="1221" y="888" />
+        <di:waypoint x="1240.5" y="888" />
+        <di:waypoint x="1240.5" y="890" />
+        <di:waypoint x="1260" y="890" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_50_di" bpmnElement="Flow_50">
+        <di:waypoint x="1384" y="890" />
+        <di:waypoint x="1520" y="890" />
+        <di:waypoint x="1520" y="430" />
+        <di:waypoint x="1305" y="430" />
+        <di:waypoint x="1305" y="451" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_51_di" bpmnElement="Flow_51">
+        <di:waypoint x="1330" y="476" />
+        <di:waypoint x="1340" y="476" />
+        <di:waypoint x="1340" y="474" />
+        <di:waypoint x="1350" y="474" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_52_di" bpmnElement="Flow_52">
+        <di:waypoint x="1305" y="501" />
+        <di:waypoint x="1305" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_53_di" bpmnElement="Flow_53">
+        <di:waypoint x="1446" y="474" />
+        <di:waypoint x="1479" y="474" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_54_di" bpmnElement="Flow_54">
+        <di:waypoint x="1230" y="514" />
+        <di:waypoint x="1230" y="582" />
+        <di:waypoint x="1269" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_55_di" bpmnElement="Flow_55">
+        <di:waypoint x="1327" y="604" />
+        <di:waypoint x="1327" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_56_di" bpmnElement="Flow_56">
+        <di:waypoint x="1345" y="643" />
+        <di:waypoint x="1400" y="643" />
+        <di:waypoint x="1400" y="656" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_57_di" bpmnElement="Flow_57">
+        <di:waypoint x="1327" y="661" />
+        <di:waypoint x="1327" y="725" />
+        <di:waypoint x="1200" y="725" />
+        <di:waypoint x="1200" y="496" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_58_di" bpmnElement="Flow_58">
+        <di:waypoint x="1445" y="684" />
+        <di:waypoint x="1450.5" y="684" />
+        <di:waypoint x="1450.5" y="673" />
+        <di:waypoint x="1456" y="673" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_59_di" bpmnElement="Flow_59">
+        <di:waypoint x="403" y="560" />
+        <di:waypoint x="404.5" y="560" />
+        <di:waypoint x="404.5" y="565" />
+        <di:waypoint x="406" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_60_di" bpmnElement="Flow_60">
+        <di:waypoint x="456" y="565" />
+        <di:waypoint x="505" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_61_di" bpmnElement="Flow_61">
+        <di:waypoint x="431" y="590" />
+        <di:waypoint x="431" y="608" />
+        <di:waypoint x="472" y="608" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_62_di" bpmnElement="Flow_62">
+        <di:waypoint x="613" y="565" />
+        <di:waypoint x="624" y="565" />
+        <di:waypoint x="624" y="576" />
+        <di:waypoint x="635" y="576" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_63_di" bpmnElement="Flow_63">
+        <di:waypoint x="685" y="576" />
+        <di:waypoint x="705.5" y="576" />
+        <di:waypoint x="705.5" y="572" />
+        <di:waypoint x="726" y="572" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_64_di" bpmnElement="Flow_64">
+        <di:waypoint x="660" y="601" />
+        <di:waypoint x="660" y="608" />
+        <di:waypoint x="508" y="608" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_65_di" bpmnElement="Flow_65">
+        <di:waypoint x="838" y="572" />
+        <di:waypoint x="881" y="572" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_66_di" bpmnElement="Flow_66">
+        <di:waypoint x="446" y="650" />
+        <di:waypoint x="630" y="650" />
+        <di:waypoint x="630" y="664" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_67_di" bpmnElement="Flow_67">
+        <di:waypoint x="328" y="666" />
+        <di:waypoint x="321" y="666" />
+        <di:waypoint x="321" y="699" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_68_di" bpmnElement="Flow_68">
+        <di:waypoint x="361" y="715" />
+        <di:waypoint x="373" y="715" />
+        <di:waypoint x="373" y="718" />
+        <di:waypoint x="385" y="718" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_69_di" bpmnElement="Flow_69">
+        <di:waypoint x="435" y="718" />
+        <di:waypoint x="468" y="718" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_70_di" bpmnElement="Flow_70">
+        <di:waypoint x="410" y="693" />
+        <di:waypoint x="410" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_71_di" bpmnElement="Flow_71">
+        <di:waypoint x="588" y="718" />
+        <di:waypoint x="598" y="718" />
+        <di:waypoint x="598" y="692" />
+        <di:waypoint x="610" y="692" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_72_di" bpmnElement="Flow_72">
+        <di:waypoint x="245" y="790" />
+        <di:waypoint x="252.5" y="790" />
+        <di:waypoint x="252.5" y="788" />
+        <di:waypoint x="260" y="788" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_73_di" bpmnElement="Flow_73">
+        <di:waypoint x="285" y="813" />
+        <di:waypoint x="285" y="830" />
+        <di:waypoint x="200" y="830" />
+        <di:waypoint x="200" y="857" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_74_di" bpmnElement="Flow_74">
+        <di:waypoint x="310" y="788" />
+        <di:waypoint x="324" y="788" />
+        <di:waypoint x="324" y="785" />
+        <di:waypoint x="338" y="785" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_75_di" bpmnElement="Flow_75">
+        <di:waypoint x="442" y="785" />
+        <di:waypoint x="455.5" y="785" />
+        <di:waypoint x="455.5" y="788" />
+        <di:waypoint x="469" y="788" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_76_di" bpmnElement="Flow_76">
+        <di:waypoint x="519" y="788" />
+        <di:waypoint x="561" y="788" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_77_di" bpmnElement="Flow_77">
+        <di:waypoint x="494" y="813" />
+        <di:waypoint x="494" y="846" />
+        <di:waypoint x="232" y="846" />
+        <di:waypoint x="232" y="857" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_78_di" bpmnElement="Flow_78">
+        <di:waypoint x="665" y="788" />
+        <di:waypoint x="672" y="788" />
+        <di:waypoint x="672" y="782" />
+        <di:waypoint x="679" y="782" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_79_di" bpmnElement="Flow_79">
+        <di:waypoint x="236" y="913" />
+        <di:waypoint x="236" y="922" />
+        <di:waypoint x="747" y="922" />
+        <di:waypoint x="747" y="912" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_80_di" bpmnElement="Flow_80">
+        <di:waypoint x="290" y="870" />
+        <di:waypoint x="347" y="870" />
+        <di:waypoint x="347" y="880" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_81_di" bpmnElement="Flow_81">
+        <di:waypoint x="392" y="900" />
+        <di:waypoint x="410" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_82_di" bpmnElement="Flow_82">
+        <di:waypoint x="460" y="900" />
+        <di:waypoint x="473.5" y="900" />
+        <di:waypoint x="473.5" y="885" />
+        <di:waypoint x="487" y="885" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_83_di" bpmnElement="Flow_83">
+        <di:waypoint x="435" y="925" />
+        <di:waypoint x="435" y="932" />
+        <di:waypoint x="190" y="932" />
+        <di:waypoint x="190" y="913" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_84_di" bpmnElement="Flow_84">
+        <di:waypoint x="603" y="885" />
+        <di:waypoint x="641.5" y="885" />
+        <di:waypoint x="641.5" y="884" />
+        <di:waypoint x="680" y="884" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
