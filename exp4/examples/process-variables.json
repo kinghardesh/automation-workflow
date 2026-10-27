@@ -1,0 +1,108 @@
+{
+  "lab1_approved": {
+    "applicantId": "APP-100",
+    "monthlyIncome": 70000,
+    "requestedAmount": 300000
+  },
+  "lab1_manual_review": {
+    "applicantId": "APP-200",
+    "monthlyIncome": 40000,
+    "requestedAmount": 500000
+  },
+  "lab1_rejected": {
+    "applicantId": "LOW-300",
+    "monthlyIncome": 50000,
+    "requestedAmount": 200000
+  },
+  "lab1_worker_failure": {
+    "applicantId": "WORKER_FAIL",
+    "monthlyIncome": 70000,
+    "requestedAmount": 300000
+  },
+  "lab1_credit_api_failure": {
+    "applicantId": "API_ERROR",
+    "monthlyIncome": 70000,
+    "requestedAmount": 300000
+  },
+  "lab2_normal_order": {
+    "customerReference": "CUST-101",
+    "orderId": "ORD-101",
+    "productId": "P100",
+    "quantity": 2,
+    "customerCategory": "REGULAR",
+    "deliveryPreference": "STANDARD",
+    "paymentToken": "MOCK-OK"
+  },
+  "lab2_insufficient_stock": {
+    "customerReference": "CUST-102",
+    "orderId": "ORD-102",
+    "productId": "P200",
+    "quantity": 8,
+    "customerCategory": "REGULAR",
+    "deliveryPreference": "STANDARD",
+    "paymentToken": "MOCK-OK"
+  },
+  "lab2_payment_declined": {
+    "customerReference": "CUST-103",
+    "orderId": "ORD-103",
+    "productId": "P100",
+    "quantity": 1,
+    "customerCategory": "REGULAR",
+    "deliveryPreference": "STANDARD",
+    "paymentToken": "DECLINE"
+  },
+  "lab2_high_value": {
+    "customerReference": "CUST-104",
+    "orderId": "ORD-104",
+    "productId": "P300",
+    "quantity": 1,
+    "customerCategory": "PREMIUM",
+    "deliveryPreference": "EXPRESS",
+    "paymentToken": "MOCK-OK"
+  },
+  "lab2_worker_failure": {
+    "customerReference": "CUST-105",
+    "orderId": "ORD-105",
+    "productId": "WORKER_FAIL",
+    "quantity": 1,
+    "customerCategory": "REGULAR",
+    "deliveryPreference": "STANDARD",
+    "paymentToken": "MOCK-OK"
+  },
+  "lab3_routine": {
+    "patientReference": "SYN-PAT-101",
+    "appointmentPreference": "MORNING",
+    "symptomsSummary": "Synthetic mild cough for two days",
+    "urgencyIndicators": "ROUTINE"
+  },
+  "lab3_priority": {
+    "patientReference": "SYN-PAT-102",
+    "appointmentPreference": "AFTERNOON",
+    "symptomsSummary": "Synthetic worsening symptoms; staff review requested",
+    "urgencyIndicators": "PRIORITY"
+  },
+  "lab3_urgent": {
+    "patientReference": "SYN-PAT-103",
+    "appointmentPreference": "MORNING",
+    "symptomsSummary": "Synthetic urgent indicator for workflow demonstration",
+    "urgencyIndicators": "URGENT"
+  },
+  "lab3_no_slots": {
+    "patientReference": "SYN-PAT-104",
+    "appointmentPreference": "NONE",
+    "symptomsSummary": "Synthetic routine request; no slot preference available",
+    "urgencyIndicators": "ROUTINE"
+  },
+  "lab3_worker_failure": {
+    "patientReference": "WORKER_FAIL",
+    "appointmentPreference": "MORNING",
+    "symptomsSummary": "Synthetic test",
+    "urgencyIndicators": "ROUTINE"
+  },
+  "lab3_scheduling_api_failure": {
+    "patientReference": "SYN-PAT-105",
+    "appointmentPreference": "API_ERROR",
+    "symptomsSummary": "Synthetic routine request for failure testing",
+    "urgencyIndicators": "ROUTINE"
+  }
+}

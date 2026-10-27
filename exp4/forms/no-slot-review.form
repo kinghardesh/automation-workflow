@@ -1,0 +1,12 @@
+{
+  "id": "no-slot-review-form",
+  "type": "default",
+  "components": [
+    {
+      "label": "Referral acknowledged?",
+      "type": "checkbox",
+      "id": "referralAcknowledged",
+      "key": "referralAcknowledged"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "priority-review-form",
+  "type": "default",
+  "components": [
+    {
+      "label": "Staff review completed?",
+      "type": "checkbox",
+      "id": "priorityReviewCompleted",
+      "key": "priorityReviewCompleted"
+    }
+  ]
+}

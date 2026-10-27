@@ -1,0 +1,12 @@
+{
+  "id": "order-review-form",
+  "type": "default",
+  "components": [
+    {
+      "label": "Verification successful?",
+      "type": "checkbox",
+      "id": "verified",
+      "key": "verified"
+    }
+  ]
+}

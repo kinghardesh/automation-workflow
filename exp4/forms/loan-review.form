@@ -1,0 +1,12 @@
+{
+  "id": "loan-review-form",
+  "type": "default",
+  "components": [
+    {
+      "label": "Approve this loan?",
+      "type": "checkbox",
+      "id": "approve",
+      "key": "reviewApproved"
+    }
+  ]
+}

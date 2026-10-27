@@ -1,0 +1,12 @@
+{
+  "id": "urgent-assessment-form",
+  "type": "default",
+  "components": [
+    {
+      "label": "Assessment acknowledged?",
+      "type": "checkbox",
+      "id": "assessmentCompleted",
+      "key": "assessmentCompleted"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:definitions xmlns:ns0="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_triageCategory" name="Triage Category" namespace="https://example.com/pbj2/dmn" exporter="PBJ-2 educational starter" exporterVersion="1.0">
+  <ns0:decision id="triageCategory" name="Triage Category">
+    <ns0:decisionTable id="DecisionTable_triageCategory" hitPolicy="FIRST">
+      <ns0:input id="in_urgency" label="Urgency indicator">
+        <ns0:inputExpression id="in_urgency_expr" typeRef="string">urgencyIndicators</ns0:inputExpression>
+      </ns0:input>
+      <ns0:output id="out_category" label="Triage category" name="Triage category" typeRef="string" />
+      <ns0:rule id="Rule_triageCategory_1">
+        <ns0:inputEntry id="Rule_triageCategory_1_in1">
+          <ns0:text>"URGENT"</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_triageCategory_1_out1">
+          <ns0:text>"Urgent Assessment"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_triageCategory_2">
+        <ns0:inputEntry id="Rule_triageCategory_2_in1">
+          <ns0:text>"PRIORITY"</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_triageCategory_2_out1">
+          <ns0:text>"Priority Review"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_triageCategory_3">
+        <ns0:inputEntry id="Rule_triageCategory_3_in1">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_triageCategory_3_out1">
+          <ns0:text>"Routine"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+    </ns0:decisionTable>
+  </ns0:decision>
+</ns0:definitions>

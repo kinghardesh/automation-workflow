@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:definitions xmlns:ns0="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_loanDecision" name="Loan Decision" namespace="https://example.com/pbj2/dmn" exporter="PBJ-2 educational starter" exporterVersion="1.0">
+  <ns0:decision id="loanDecision" name="Loan Decision">
+    <ns0:decisionTable id="DecisionTable_loanDecision" hitPolicy="FIRST">
+      <ns0:input id="in_valid" label="Applicant valid">
+        <ns0:inputExpression id="in_valid_expr" typeRef="boolean">isValid</ns0:inputExpression>
+      </ns0:input>
+      <ns0:input id="in_income" label="Monthly income">
+        <ns0:inputExpression id="in_income_expr" typeRef="number">monthlyIncome</ns0:inputExpression>
+      </ns0:input>
+      <ns0:input id="in_amount" label="Requested amount">
+        <ns0:inputExpression id="in_amount_expr" typeRef="number">requestedAmount</ns0:inputExpression>
+      </ns0:input>
+      <ns0:input id="in_score" label="Credit score">
+        <ns0:inputExpression id="in_score_expr" typeRef="number">creditResponse.creditScore</ns0:inputExpression>
+      </ns0:input>
+      <ns0:output id="out_decision" label="Decision" name="Decision" typeRef="string" />
+      <ns0:rule id="Rule_loanDecision_1">
+        <ns0:inputEntry id="Rule_loanDecision_1_in1">
+          <ns0:text>false</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_1_in2">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_1_in3">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_1_in4">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_loanDecision_1_out1">
+          <ns0:text>"Rejected"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_loanDecision_2">
+        <ns0:inputEntry id="Rule_loanDecision_2_in1">
+          <ns0:text>true</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_2_in2">
+          <ns0:text>&gt;= 50000</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_2_in3">
+          <ns0:text>&lt;= 500000</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_2_in4">
+          <ns0:text>&gt;= 700</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_loanDecision_2_out1">
+          <ns0:text>"Approved"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_loanDecision_3">
+        <ns0:inputEntry id="Rule_loanDecision_3_in1">
+          <ns0:text>true</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_3_in2">
+          <ns0:text>&gt;= 30000</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_3_in3">
+          <ns0:text>&lt;= 750000</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_3_in4">
+          <ns0:text>&gt;= 600</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_loanDecision_3_out1">
+          <ns0:text>"Manual Review"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_loanDecision_4">
+        <ns0:inputEntry id="Rule_loanDecision_4_in1">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_4_in2">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_4_in3">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_loanDecision_4_in4">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_loanDecision_4_out1">
+          <ns0:text>"Rejected"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+    </ns0:decisionTable>
+  </ns0:decision>
+</ns0:definitions>

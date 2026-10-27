@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:definitions xmlns:ns0="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_orderPriority" name="Order Priority" namespace="https://example.com/pbj2/dmn" exporter="PBJ-2 educational starter" exporterVersion="1.0">
+  <ns0:decision id="orderPriority" name="Order Priority">
+    <ns0:decisionTable id="DecisionTable_orderPriority" hitPolicy="FIRST">
+      <ns0:input id="in_total" label="Order total">
+        <ns0:inputExpression id="in_total_expr" typeRef="number">orderTotal</ns0:inputExpression>
+      </ns0:input>
+      <ns0:input id="in_customer" label="Customer category">
+        <ns0:inputExpression id="in_customer_expr" typeRef="string">customerCategory</ns0:inputExpression>
+      </ns0:input>
+      <ns0:input id="in_delivery" label="Delivery preference">
+        <ns0:inputExpression id="in_delivery_expr" typeRef="string">deliveryPreference</ns0:inputExpression>
+      </ns0:input>
+      <ns0:output id="out_priority" label="Priority" name="Priority" typeRef="string" />
+      <ns0:rule id="Rule_orderPriority_1">
+        <ns0:inputEntry id="Rule_orderPriority_1_in1">
+          <ns0:text>&gt;= 50000</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_1_in2">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_1_in3">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_orderPriority_1_out1">
+          <ns0:text>"HIGH"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_orderPriority_2">
+        <ns0:inputEntry id="Rule_orderPriority_2_in1">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_2_in2">
+          <ns0:text>"PREMIUM"</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_2_in3">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_orderPriority_2_out1">
+          <ns0:text>"HIGH"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_orderPriority_3">
+        <ns0:inputEntry id="Rule_orderPriority_3_in1">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_3_in2">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_3_in3">
+          <ns0:text>"EXPRESS"</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_orderPriority_3_out1">
+          <ns0:text>"HIGH"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+      <ns0:rule id="Rule_orderPriority_4">
+        <ns0:inputEntry id="Rule_orderPriority_4_in1">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_4_in2">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:inputEntry id="Rule_orderPriority_4_in3">
+          <ns0:text>-</ns0:text>
+        </ns0:inputEntry>
+        <ns0:outputEntry id="Rule_orderPriority_4_out1">
+          <ns0:text>"NORMAL"</ns0:text>
+        </ns0:outputEntry>
+      </ns0:rule>
+    </ns0:decisionTable>
+  </ns0:decision>
+</ns0:definitions>
